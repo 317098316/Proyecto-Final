@@ -5,19 +5,13 @@ Created on Sun Jan 23 10:09:23 2022
 @author: DIEGO
 """
 import pandas as pd
+import matplotlib.pyplot as plt
 import pandasql as ps
-#from urllib.request import urlopen
-#import urllib.request
-#import requests
 import time 
 import numpy as np
-import re
 from selenium import webdriver
 aux=pd.DataFrame()
 aux.to_excel("df_proyecto.xlsx",index=False)
-
-
-
 
 def Buscador_Precios_FGuadalajara(producto,mypath):
     
@@ -117,18 +111,11 @@ def Buscador_Precios_Selenium_sanpablo(producto,mypath):
         except:
             lista_nombres.append(np.nan)
 
-    df_proyecto=pd.DataFrame({"Nombre":lista_nombres,"URL":lista_urls,"Precio con descuento":lista_promos,"Precio":lista_precios})
+    df_proyecto = pd.DataFrame({"Nombre":lista_nombres,"URL":lista_urls,"Precio":lista_precios,"Precio con descuento":lista_promos})
     df_proyecto["Farmacia"]="San Pablo"
     df_proyecto["Medicamento"]= producto
     df_proyecto["Fecha"]= time.strftime("%d/%m/%y")
-
     df_proyecto = df_proyecto[["Fecha","Farmacia","Medicamento","Nombre","URL","Precio","Precio con descuento"]]
-
-
-    df_proyecto = df_proyecto[df_proyecto['Nombre'].astype(str).str.contains(r'\b{}\b'.format(producto), regex=True, case=False)]
-    df_proyecto  =df_proyecto.reset_index(drop=True)
-
-
 
     datos_webscraper=pd.read_excel("df_proyecto.xlsx")
     datos_webscraper= pd.concat([datos_webscraper,df_proyecto],axis=0)
@@ -143,7 +130,7 @@ def Buscador_Precios_Selenium_FAhorro(producto,mypath):
     url= "https://www.fahorro.com/catalogsearch/result/?q="+producto
     driver.get(url)
     
-    productos= driver.find_elements_by_class_name("item product porduct-item")
+    productos= driver.find_elements_by_class_name("product-item-info")
 
     lista_urls=list()
     for i in range(len(productos)):
@@ -155,7 +142,7 @@ def Buscador_Precios_Selenium_FAhorro(producto,mypath):
     lista_nombres=list()
     for i in range(len(productos)):
         try:
-            lista_nombres.append(productos[i].find_elements_by_tag_name("a")[2].text)
+            lista_nombres.append(productos[i].find_elements_by_tag_name("a")[1].text)
         except:
             lista_nombres.append(np.nan)
             
@@ -164,26 +151,25 @@ def Buscador_Precios_Selenium_FAhorro(producto,mypath):
 
     for i in range(len(productos)):
         try:
-            lista_precios.append(productos[i].find_elements_by_class_name("price-box price-final_price")[0].text)
+            lista_precios.append(productos[i].find_elements_by_class_name("price")[0].text)
         except:
             lista_precios.append(np.nan)
         try:
-            lista_promos.append(productos[i].find_elements_by_class_name("price-box price-final_price")[1].text)
+            lista_promos.append(productos[i].find_elements_by_class_name("price")[1].text)
         except:
             lista_promos.append(np.nan)
             
-    df_proyecto =pd.DataFrame({"Nombre":lista_nombres,"URL":lista_urls,"Precio":lista_precios,"Precio con descuento":lista_promos})
-    df_proyecto["Farmacia"]="del Ahorro"
+    df_proyecto = pd.DataFrame({"Nombre":lista_nombres,"URL":lista_urls,"Precio":lista_precios,"Precio con descuento":lista_promos})
+    df_proyecto["Farmacia"]="Del Ahorro"
     df_proyecto["Medicamento"]= producto
     df_proyecto["Fecha"]= time.strftime("%d/%m/%y")
     df_proyecto = df_proyecto[["Fecha","Farmacia","Medicamento","Nombre","URL","Precio","Precio con descuento"]]
-    df_proyecto = df_proyecto.reset_index(drop=True)
 
     datos_webscraper=pd.read_excel("df_proyecto.xlsx")
     datos_webscraper= pd.concat([datos_webscraper,df_proyecto],axis=0)
     datos_webscraper.to_excel("df_proyecto.xlsx",index=False)
-
     driver.quit()
+
     return df_proyecto
 
 def precios_floats(datos):
@@ -206,21 +192,48 @@ def precios_floats(datos):
     datos['Precio con descuento'] = pd.to_numeric(datos['Precio con descuento'], errors='coerce')
     datos['Precio'] = pd.to_numeric(datos['Precio'], errors='coerce')
 
-    datos.to_excel("df_proyecto_limpio.xlsx",index=False)
+    datos.to_excel("df_proyecto.xlsx",index=False)
         
     print(datos.dtypes)
     return datos
-
-    precios_floats(df_proyecto)
-    
-    df_proyecto=pd.read_excel("df_proyecto_limpio.xlsx")
-    df_proyecto
 
 def Precios(path):
     for productos in ["Ibuprofeno 400mg","Paracetamol 500mg","Clonazepam 2mg","Viagra 100mg"]:
         Buscador_Precios_FGuadalajara(productos,path)
         Buscador_Precios_Selenium_sanpablo(productos,path)
         Buscador_Precios_Selenium_FAhorro(productos,path)
-        
+    
+    fig, ax = plt.subplots()
+    plt.bar(range(3), [74, 15, 35], color=["red","blue","grey"],align='center')
+    plt.title("Comparación de Ibuprofeno",fontsize=20)
+    names = ["Ahorro","Guadalajara","San Pablo"]
+    ax.set_xticks(range(3))
+    ax.set_xticklabels(names)
+    plt.show()
+
+    fig, ax = plt.subplots()
+    plt.bar(range(3), [33, 14, 10], color=["red","blue","grey"],align='center')
+    plt.title("Comparación de Paracetamol",fontsize=20)
+    names = ["Ahorro","Guadalajara","San Pablo"]
+    ax.set_xticks(range(3))
+    ax.set_xticklabels(names)
+    plt.show()
+
+    fig, ax = plt.subplots()
+    plt.bar(range(3), [79, 81, 94], color=["red","blue","grey"],align='center')
+    plt.title("Comparación de Clonazepam",fontsize=20)
+    names = ["Ahorro","Guadalajara","San Pablo"]
+    ax.set_xticks(range(3))
+    ax.set_xticklabels(names)
+    plt.show()
+
+    fig, ax = plt.subplots()
+    plt.bar(range(3), [225, 216, 205], color=["red","blue","grey"],align='center')
+    plt.title("Comparación de Viagra",fontsize=20)
+    names = ["Ahorro","Guadalajara","San Pablo"]
+    ax.set_xticks(range(3))
+    ax.set_xticklabels(names)
+    plt.show()
+
 
 Precios("C:\WebDriver\chromedriver.exe")
