@@ -2,10 +2,10 @@
 proyecto
 
 INTEGRANTES:
-	Abimael González García
-	Diego Yael Miranda Suárez
-	Jael Alejandro González Guadarrama
-	Yorleny Bianeth Serrano Mejía
+	-Abimael González García
+	-Diego Yael Miranda Suárez
+	-Jael Alejandro González Guadarrama
+	-Yorleny Bianeth Serrano Mejía
 
 INSTRUCCIONES:
 Antes que nada debe copiar el codigo en un Jupyter Notebook
